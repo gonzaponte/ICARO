@@ -326,9 +326,10 @@ def plot_evt_info(data, outputfolder="plots/"):
     save("S2heightvsS2width")
 
 
-#ifiles = [inputfile]
-ifiles = glob.glob("/Users/Gonzalo/github/NEXTdata/Kr2016/"
-                   "pmaps_NEXT_v0_08_09_Kr_ACTIVE_*_0_7bar__10000.root.h5")
+#os.environ["IC_DATA"] = os.environ["IC_DATA"] + "/Kr2016/"
+pattern = "$IC_DATA/pmaps_NEXT_v0_08_09_Kr_ACTIVE_*_0_7bar__10000.root.h5"
+ifiles = glob.glob(os.path.expandvars(pattern))
+#ifiles = ifiles[:1]
 data = fill_events(ifiles)
 full = Dataset(data)
 good = Dataset(data, True)
@@ -341,6 +342,7 @@ print("Ratio:", good.evts.size/full.evts.size)
 t0 = time.time()
 plot_S12_info(full)
 print(time.time()-t0)
+
 t0 = time.time()
 plot_evt_info(good)
 print(time.time()-t0)
