@@ -509,7 +509,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     labels("rms y (mm)", "Entries")
     save("rmsY_full")
 
-    data.apply_mask((data.rmsX > 1e-3) & (data.rmsY > 1e-3))
+    data.apply_mask((data.Xrms > 1e-3) & (data.Yrms > 1e-3))
     ################################
     plt.figure()
     plt.hist(data.Xrms, 100, range=(0, 50))
