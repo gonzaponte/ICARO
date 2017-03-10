@@ -12,7 +12,8 @@ print("Running on ", time.asctime())
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.rcParams["figure.figsize"] = 12, 10
+plt.rcParams["figure.figsize"]          = 12, 10
+plt.rcParams["font.size"]               = 15
 plt.rcParams["figure.max_open_warning"] = 100
 
 import invisible_cities.database.load_db as DB
@@ -389,7 +390,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.plot(x, y, profOpt)
     f = fitf.fit(fitf.polynom, x, y, (2, -1e-5, -1e-2, -1e-3))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(400, 3.5, "{:.3g} + {:.3g} x + {:.3g} x^2 + {:.3g} x^3".format(*f.values))
+    plt.text(200, 3.5, "{:.3g} + {:.3g} x + {:.3g} x^2 + {:.3g} x^3".format(*f.values))
     labels("Drift time ($\mu$)", "Number of SiPMs touched")
     save("NsipmvsZ")
 
@@ -429,6 +430,14 @@ def plot_tracking_info(data, outputfolder="plots/"):
 
     ################################
     plt.figure()
+    x, y, q, qe = fitf.profileXY(data.X, data.Y, data.Q, 100, 100)
+    plt.scatter(x, y, c=q, marker="s")
+    plt.colorbar()
+    labels("x (mm)", "y (mm)")
+    save("QvsXY")
+
+    ################################
+    plt.figure()
     plt.scatter(data.R, data.Q)
     x, y, _ = fitf.profileX(data.R, data.Q, 50)
     plt.plot(x, y, profOpt)
@@ -453,7 +462,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.plot(x, y, profOpt)
     f = fitf.fit(fitf.power, x, y, (100, 0.7))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(3.1, 400, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
+    plt.text(2.5, 50, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
     labels("Number of SiPMs touched", "Traking Plane integral (pes)")
     save("QvsNsipm")
 
@@ -525,22 +534,22 @@ def plot_tracking_info(data, outputfolder="plots/"):
     ################################
     plt.figure()
     plt.scatter(data.Z, data.Xrms)
-    x, y, _ = fitf.profileX(data.Z, data.Xrms, 100, xrange=(0, 30))
+    x, y, _ = fitf.profileX(data.Z, data.Xrms, 100, yrange=(0,30))
     plt.plot(x, y, profOpt)
-    f = fitf.fit(fitf.expo, x, y, (1., 0.8))
+    f = fitf.fit(fitf.polynom, x, y, (1., 0.8))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(400, 10, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
+    plt.text(100, 5, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
     labels("Drift time ($\mu$s)", "rms x (mm)")
     save("rmsXvsZ")
 
     ################################
     plt.figure()
     plt.scatter(data.Z, data.Yrms)
-    x, y, _ = fitf.profileX(data.Z, data.Yrms, 100, xrange=(0, 30))
+    x, y, _ = fitf.profileX(data.Z, data.Yrms, 100, yrange=(0,30))
     plt.plot(x, y, profOpt)
-    f = fitf.fit(fitf.expo, x, y, (1., 0.8))
+    f = fitf.fit(fitf.polynom, x, y, (1., 0.8))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(400, 10, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
+    plt.text(100, 5, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
     labels("Drift time ($\mu$s)", "rms y (mm)")
     save("rmsYvsZ")
 
@@ -561,6 +570,6 @@ print("Ratio      :", good.evts.size/full.evts.size)
 
 
 
-plot_S12_info(full)
-plot_evt_info(good)
+#plot_S12_info(full)
+#plot_evt_info(good)
 plot_tracking_info(good)
