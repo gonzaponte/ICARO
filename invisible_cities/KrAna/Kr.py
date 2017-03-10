@@ -15,7 +15,7 @@ plt.rcParams["figure.figsize"] = 12, 10
 
 import invisible_cities.database.load_db as DB
 import invisible_cities.core.system_of_units_c as SystemOfUnits
-import invisible_cities.core.pmaps_functions as pmapf
+import invisible_cities.reco.pmaps_functions as pmapf
 import invisible_cities.core.fit_functions as fitf
 
 DataPMT = DB.DataPMT()
@@ -89,8 +89,8 @@ def fill_events(inputfiles):
     evts_out = []
     for ifile in inputfiles:
         s1s, s2s, _ = pmapf.read_pmaps(ifile)
-        s1s = pmapf.s12df_to_s12l(s1s)
-        s2s = pmapf.s12df_to_s12l(s2s)
+        s1s = pmapf.df_to_pmaps_dict(s1s)
+        s2s = pmapf.df_to_pmaps_dict(s2s)
         evts = set(list(s1s.keys()) +
                    list(s2s.keys()))
         skip = max(evts)
