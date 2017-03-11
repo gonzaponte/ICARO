@@ -4,7 +4,6 @@ Kr analysis
 from __future__ import print_function, division
 
 import os
-import copy
 import functools
 import time
 import glob
@@ -381,8 +380,6 @@ def plot_tracking_info(data, outputfolder="plots/"):
     labels("Number of SiPMs touched", "Entries")
     save("Nsipm")
 
-#    data = copy.deepcopy(data)
-    data.apply_mask(data.Nsipm > 0)
     ################################
     plt.figure()
     plt.scatter(data.Z, data.Nsipm)
@@ -391,9 +388,10 @@ def plot_tracking_info(data, outputfolder="plots/"):
     f = fitf.fit(fitf.polynom, x, y, (2, -1e-5, -1e-2, -1e-3))
     plt.plot(x, f.fn(x), fitOpt)
     plt.text(200, 3.5, "{:.3g} + {:.3g} x + {:.3g} x^2 + {:.3g} x^3".format(*f.values))
-    labels("Drift time ($\mu$)", "Number of SiPMs touched")
+    labels("Drift time ($\mu$s)", "Number of SiPMs touched")
     save("NsipmvsZ")
 
+    data.apply_mask(data.Nsipm > 0)
     ################################
     plt.figure()
     plt.scatter(data.R, data.Nsipm)
@@ -430,9 +428,19 @@ def plot_tracking_info(data, outputfolder="plots/"):
 
     ################################
     plt.figure()
+    ave = f.fn(data.Z[data.Z<200])
+    plt.hist((data.Q[data.Z<200] - ave)/ave**0.5, 100, range=(-10, 10))
+    labels("Traking Plane integral - average value (pes)", "Entries")
+    save("QvsZ_shifted")
+
+    ################################
+    plt.figure()
     x, y, q, qe = fitf.profileXY(data.X, data.Y, data.Q, 100, 100)
+    x = np.repeat(x, x.size)
+    y = np.tile(y, y.size)
+    q = np.concatenate(q)
     plt.scatter(x, y, c=q, marker="s")
-    plt.colorbar()
+    plt.colorbar().set_label("Tracking plane integral (pes)")
     labels("x (mm)", "y (mm)")
     save("QvsXY")
 
@@ -454,6 +462,36 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.plot(x, y, profOpt)
     labels("$\phi$ (rad)", "Traking Plane integral (pes)")
     save("QvsPhi")
+
+    ################################
+    plt.figure()
+    x, y, q, qe = fitf.profileXY(data.X, data.Y, data.S2i, 100, 100)
+    x = np.repeat(x, x.size)
+    y = np.tile(y, y.size)
+    q = np.concatenate(q)
+    plt.scatter(x, y, c=q, marker="s")
+    plt.colorbar().set_label("Event energy (pes)")
+    labels("x (mm)", "y (mm)")
+    save("EvsXY")
+
+    ################################
+    plt.figure()
+    plt.scatter(data.R, data.S2i)
+    x, y, _ = fitf.profileX(data.R, data.S2i, 100)
+    plt.plot(x, y, profOpt)
+    f = fitf.fit(fitf.polynom, x, y, (6e3, -1e-2, 1e-2, -1e-3, -1e-4, 1e-6, 1e-7))
+    plt.plot(x, f.fn(x), fitOpt)
+    plt.text(0, 3e3, "{:.3g} + {:.3g} x + {:.3g} x^2 + {:.3g} x^3 + {:.3g} x^4 + {:.3g} x^5 + {:.3g} x^6".format(*f.values))
+    labels("r (mm)", "Event energy (pes)")
+    save("EvsR")
+
+    ################################
+    plt.figure()
+    plt.scatter(data.Phi, data.S2i)
+    x, y, _ = fitf.profileX(data.Phi, data.S2i, 100)
+    plt.plot(x, y, profOpt)
+    labels("$\phi$ (rad)", "Event energy (pes)")
+    save("EvsPhi")
 
     ################################
     plt.figure()
@@ -494,7 +532,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.figure()
     plt.hist2d(data.X, data.Y, 100, range=((-220, 220),
                                            (-220, 220)))
-    plt.colorbar()
+    plt.colorbar().set_label("# events")
     labels("x (mm)", "y (mm)")
     save("XY")
 
@@ -502,7 +540,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.figure()
     plt.hist2d(data.R, data.Phi, 100, range=((  0, 220),
                                              (-pi, pi )))
-    plt.colorbar()
+    plt.colorbar().set_label("# events")
     labels("r (mm)", "$\phi$ (mm)")
     save("RPhi")
 
@@ -538,7 +576,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.plot(x, y, profOpt)
     f = fitf.fit(fitf.polynom, x, y, (1., 0.8))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(100, 5, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
+    plt.text(100, 5, "{:.3f} + {:.3f} x".format(*f.values))
     labels("Drift time ($\mu$s)", "rms x (mm)")
     save("rmsXvsZ")
 
@@ -549,7 +587,7 @@ def plot_tracking_info(data, outputfolder="plots/"):
     plt.plot(x, y, profOpt)
     f = fitf.fit(fitf.polynom, x, y, (1., 0.8))
     plt.plot(x, f.fn(x), fitOpt)
-    plt.text(100, 5, "{:.3f} $\cdot$ x^{:.2f}".format(*f.values))
+    plt.text(100, 5, "{:.3f} + {:.3f} x".format(*f.values))
     labels("Drift time ($\mu$s)", "rms y (mm)")
     save("rmsYvsZ")
 
