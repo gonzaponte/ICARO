@@ -194,7 +194,7 @@ def plot_S12_info(data, outputfolder="plots/"):
     if not os.path.exists(outputfolder):
         os.mkdir(outputfolder)
     save = functools.partial(save_to_folder, outputfolder)
-    
+
     ################################
     pdf(data.nS1, 5, range=(0, 5))
     labels("# S1", "Entries")
