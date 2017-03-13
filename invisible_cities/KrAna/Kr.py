@@ -65,6 +65,8 @@ class Event:
 
         self.Nsipm = 0
         self.Q     = 0
+        self.Xt    = np.nan
+        self.Yt    = np.nan
         self.X     = np.nan
         self.Y     = np.nan
         self.Xrms  = np.nan
