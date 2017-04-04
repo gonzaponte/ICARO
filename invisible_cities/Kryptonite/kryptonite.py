@@ -225,9 +225,10 @@ if __name__ == "__main__":
 
     run_number = 3389
     input_dir = os.path.join(os.environ['IC_DATA'],
-                'LSC/pmaps/{}'.format(run_number))
-    files_in = glob.glob(os.path.join(input_dir,'pmaps*.h5'))
+                'Kr2016/data/{}'.format(run_number))
+    files_in = glob.glob(os.path.join(input_dir,'*.h5'))
     files_in.sort()
+    print(files_in)
     #input_file = os.path.join(os.environ['IC_DATA'],
     #    'LSC/pmaps/{}/pmaps_waves.gdcsnext.000_{}.root.h5'.format(run_number,
     #                                                              run_number))
@@ -235,7 +236,7 @@ if __name__ == "__main__":
     #files_in.sort()
 
     file_out = os.path.join(os.environ['IC_DATA'],
-        'LSC/pmaps/{}/kdst_{}_full.h5'.format(run_number, run_number))
+        'kdst_{}_full.h5'.format(run_number))
 
     s1par  = S12Params(tmin=0*units.mus, tmax=640*units.mus,
                        lmin=5, lmax=20,
