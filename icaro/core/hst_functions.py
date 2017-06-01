@@ -5,7 +5,8 @@ import numpy             as np
 import matplotlib.pyplot as plt
 from   matplotlib.colors import LogNorm
 
-import invisible_cities.core.fit_functions as fitf
+import invisible_cities.core.fit_functions as     fitf
+from   invisible_cities.reco.params        import Measurement
 
 def labels(xlabel, ylabel, title=""):
     """
@@ -27,7 +28,9 @@ def hist(*args, **kwargs):
     """
     Create a figure and then the histogram
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     y, x, p = plt.hist(*args, **kwargs)
     return y, shift_to_bin_centers(x), p
@@ -46,7 +49,9 @@ def hist2d(*args, **kwargs):
     """
     Create a figure and then the histogram
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     z, x, y, p = plt.hist2d(*args, **kwargs)
     return z, shift_to_bin_centers(x), shift_to_bin_centers(y), p
@@ -56,7 +61,9 @@ def pdf(data, *args, **kwargs):
     """
     Create a figure and then the normalized histogram
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     h = hist(data, *args, **kwargs, weights=np.ones_like(data)/len(data))
     plt.yscale("log")
@@ -68,7 +75,9 @@ def scatter(*args, **kwargs):
     """
     Create a figure and then a scatter plot
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     return plt.scatter(*args, **kwargs)
 
@@ -79,7 +88,9 @@ def profile_and_scatter(x, y, z, nbin, *args, **kwargs):
     """
     Create a figure and then a scatter plot
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     x, y, z, ze = fitf.profileXY(x, y, z, *nbin, *args, **kwargs)
     x_ = np.repeat(x, x.size)
@@ -105,7 +116,9 @@ def doublescatter(x1, y1, x2, y2, lbls, *args, **kwargs):
     """
     Create a figure and then a scatter plot
     """
-    if kwargs.get("new_figure", True):
+    if "new_figure" in kwargs:
+        del kwargs["new_figure"]
+    else:
         plt.figure()
     sc1 = scatter(x1, y1, *args, label=lbls[0], **kwargs)
     sc2 = scatter(x2, y2, *args, label=lbls[1], new_figure=False, **kwargs)
@@ -127,18 +140,23 @@ def covariance(x, y):
     return l, v
 
 
-def resolution(values, E_from=41.5, E_to=2458):
-    amp, mu, sigma, *_ = values
-    r = 235. * sigma/mu
-    return r, r * (E_from/E_to)**0.5
+def resolution(values, errors = None, E_from=41.5, E_to=2458):
+    if errors is None:
+        errors = np.zeros_like(values)
+    amp  ,   mu,   sigma, *_ = values
+    u_amp, u_mu, u_sigma, *_ = errors
+    r   = 235. * sigma/mu
+    u_r = r * (u_mu**2/mu**2 + u_sigma**2/sigma**2)**0.5
+    return Measurement(r, u_r), Measurement(r * (E_from/E_to)**0.5, u_r * (E_from/E_to)**0.5)
 
 
 def gausstext(values, E_from=41.5, E_to=2458):
+    reso = resolution(values, E_from=E_from, E_to=E_to)
     return textwrap.dedent("""
         $\mu$ = {0:.1f}
         $\sigma$ = {1:.2f}
         R = {2:.3}% @ {4} keV
-        Rbb = {3:.3}% @ {5}""".format(*values[1:3], *resolution(values),
+        Rbb = {3:.3}% @ {5}""".format(*values[1:3], reso[0].value, reso[1].value,
                                       E_from, "Qbb" if E_to==2458 else str(E_to) + " keV"))
 
 
