@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 import invisible_cities.core.core_functions as coref
 import invisible_cities.reco. dst_functions as dstf
+import invisible_cities.core.fit_functions  as fitf
 
 from icaro.core.kdst_functions import event_rate
 from icaro.core.kdst_functions import profile_and_fit
@@ -37,9 +38,9 @@ parser.add_argument("--save-plots", action="store_true"  , help="store control p
 parser.add_argument("--overwrite" , action="store_true"  , help="overwrite datebase values" )
 
 flags, extras = parser.parse_known_args(args)
-flags.i = os.path.expandvars(flags.i if "i" in flags else "$ALPHASDIR")
-flags.o = os.path.expandvars(flags.o if "o" in flags else "$ICARODIR/icaro/Alphas/Lifetimes.txt")
-flags.p = os.path.expandvars(flags.p if "p" in flags else "./")
+flags.i = os.path.expandvars(flags.i if flags.i else "$ALPHASDIR")
+flags.o = os.path.expandvars(flags.o if flags.o else "$ICARODIR/icaro/Alphas/Lifetimes.txt")
+flags.p = os.path.expandvars(flags.p if flags.p else "./")
 
 run_numbers   = flags.r
 data_filename = flags.i + "{0}/dst_{0}.root.h5"
@@ -252,6 +253,39 @@ for run_number in run_numbers:
     savefig      ("LifetimeT", run_number)
 
 
+    #--------------------------------------------------------    
+    def get_centers(xbins):
+        # xbins should be shifted, as it contains the lower bounds
+        # and we want bin centers
+        return xbins[:-1] + np.diff(xbins) * 0.
+
+    plt.figure()
+
+    values, bins = np.histogram(cath.Z,50)
+    mean_val = get_centers(bins)[np.argmax(values)]
+
+    zrange   =  mean_val-5, mean_val+5
+    nbins    =  50
+    y, x, _  = plt.hist(cath.Z,nbins, zrange)
+    x        = get_centers(x)
+
+    F        = fitf.fit(fitf.gauss, x, y, (500, mean_val, 2))#, sigma=np.sqrt(y))
+
+    v_drift  = 532./F.values[1]
+    ev_drift = v_drift*F.errors[1]/F.values[1]
+
+    print("Drift length   : {:.3f} +- {:.3f} pes".format( F.values[1], F.errors[1]))
+    print("Drift velocity : {:.7f} +- {:.1e} µs ".format( v_drift    , ev_drift))
+
+    #--------------------------------------------------------
+
+    plt.plot     (x, F.fn(x), lw=3, c='r')
+    plt.xlabel   ('Drift length ($\mu$s)')
+    plt.ylabel   ('Entries')
+    plt.title    ('Drift length')
+    savefig      ("Drift:length", run_number)
+
+
     #--------------------------------------------------------
     date_begin = time_from_timestamp(t_begin)
     date_end   = time_from_timestamp(t_end  )
@@ -261,6 +295,7 @@ for run_number in run_numbers:
                      run_number,       LT,        LTu,
                         t_begin,    t_end,     run_dt,
                      date_begin, date_end, date_lapse,
+                        v_drift, ev_drift,
                      comment   = run_comment.replace(" ", "_"),
                      delimiter = " ",
                      overwrite = overwrite)

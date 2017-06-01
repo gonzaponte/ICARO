@@ -27,6 +27,7 @@ def save_lifetime(  filename,
                   run_number,       lt,  u_lt,
                      t_start,    t_end,    dt,
                   date_start, date_end, ddate,
+                  v_drift   , ev_drift,
                   comment   = "" ,
                   delimiter = " ",
                   overwrite = False):
@@ -35,6 +36,7 @@ def save_lifetime(  filename,
     line = delimiter.join(map(str, [run_number,       lt,  u_lt,
                                        t_start,    t_end,    dt,
                                     date_start, date_end, ddate,
+                                    v_drift   , ev_drift,
                                     comment]))
     in_data          = open(filename, "r").readlines()
     in_data.append(line + "\n")
@@ -44,7 +46,7 @@ def save_lifetime(  filename,
     out_data         = sorted(in_data, key=lambda x: int(x.split(delimiter)[0]))
     open(filename, "w").write(header + "".join(out_data))
 
-    
+
 def load_lifetimes(filename, delimiter=" "):
     return pd.read_csv(filename, sep=delimiter)
 
@@ -118,7 +120,7 @@ def lifetime(dst, zrange=(25,530), Erange=(1e+3, 70e3), nbins=10):
 def lifetime_vs_t(dst, nslices=10, nbins=10, seed=(3e4, -5e2), timestamps=None, **profOpt):
     LT, LTu = [], []
     T ,  Tu = [], []
-    
+
     tmin = np.min(dst.time)
     tmax = np.max(dst.time)
     bins = np.linspace(tmin, tmax, nslices+1)
