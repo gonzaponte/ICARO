@@ -47,8 +47,8 @@ def save_lifetime(  filename,
     open(filename, "w").write(header + "".join(out_data))
 
 
-def load_lifetimes(filename, delimiter=" "):
-    return pd.read_csv(filename, sep=delimiter)
+def load_lifetimes(filename, delimiter=" ", **kwargs):
+    return pd.read_csv(filename, sep=delimiter, **kwargs)
 
 
 def datetime_to_str(datetime, tformat='%Y-%m-%d-%H:%M:%S'):
@@ -174,7 +174,7 @@ def profile_and_fit(X, Y, xrange, yrange, nbins, fitpar, label, fitOpt  = "r"):
         x, y, sy = x[sel], y[sel], sy[sel]
         f        = fitf.fit(fitf.expo, x, y, fitpar, sigma=sy)
         chi2     = f.chi2
-        nbins    = 50 - n_it
+        nbins   -= n_it
 
         n_it += 1
         if nbins < 5:

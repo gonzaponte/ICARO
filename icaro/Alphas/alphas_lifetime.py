@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import invisible_cities.core.core_functions as coref
 import invisible_cities.reco. dst_functions as dstf
 import invisible_cities.core.fit_functions  as fitf
+import invisible_cities.database.load_db    as db
 
 from icaro.core.kdst_functions import event_rate
 from icaro.core.kdst_functions import profile_and_fit
@@ -257,7 +258,7 @@ for run_number in run_numbers:
     def get_centers(xbins):
         # xbins should be shifted, as it contains the lower bounds
         # and we want bin centers
-        return xbins[:-1] + np.diff(xbins) * 0.
+        return xbins[:-1] + np.diff(xbins) * 0.5
 
     plt.figure()
 
@@ -269,9 +270,9 @@ for run_number in run_numbers:
     y, x, _  = plt.hist(cath.Z,nbins, zrange)
     x        = get_centers(x)
 
-    F        = fitf.fit(fitf.gauss, x, y, (500, mean_val, 2))#, sigma=np.sqrt(y))
+    F        = fitf.fit(fitf.gauss, x, y, (500, mean_val, 2))
 
-    v_drift  = 532./F.values[1]
+    v_drift  = db.DetectorGeo().ZMAX[0]/F.values[1]
     ev_drift = v_drift*F.errors[1]/F.values[1]
 
     print("Drift length   : {:.3f} +- {:.3f} pes".format( F.values[1], F.errors[1]))
