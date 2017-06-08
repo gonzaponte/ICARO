@@ -103,7 +103,6 @@ def hist2d_profile(x, y, z, nbinx, nbiny, xrange, yrange, **kwargs):
     """
     Create a profile 2d of the data and plot it as an histogram.
     """
-    plt.figure()
     x, y, z, ze = fitf.profileXY(x, y, z, nbinx, nbiny, xrange, yrange)
     x_ = np.repeat(x, x.size)
     y_ = np.tile  (y, y.size)
