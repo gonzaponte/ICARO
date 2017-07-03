@@ -4,7 +4,7 @@ import tables as tb
 import pandas as pd
 import invisible_cities.core.fit_functions as fitf
 from   invisible_cities.core.system_of_units_c import units
-from   invisible_cities.core.mpl_functions import set_plot_labels
+from   invisible_cities.icaro.mpl_functions import set_plot_labels
 from   invisible_cities.core.core_functions import in_range
 import matplotlib.pyplot as plt
 from   collections import namedtuple
