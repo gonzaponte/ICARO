@@ -137,9 +137,9 @@ def lifetime_vs_t(dst, nslices=10, nbins=10, seed=(3e4, -5e2), timestamps=None, 
         T  .append(0.5*(t1 + t0))
         Tu .append(0.5*(t1 - t0))
 
-    #plt.errorbar(T, LT, LTu, Tu)
+    plt.errorbar(T, LT, LTu, Tu)
 
-    plt.errorbar(T, E0, E0u, Tu)
+    #plt.errorbar(T, E0, E0u, Tu)
     return T, LT, Tu, LTu, E0, E0u
 
 class MapXY:
