@@ -119,6 +119,7 @@ def lifetime(dst, zrange=(25,530), Erange=(1e+3, 70e3), nbins=10):
 
 def lifetime_vs_t(dst, nslices=10, nbins=10, seed=(3e4, -5e2), timestamps=None, **profOpt):
     LT, LTu = [], []
+    E0, E0u = [], []
     T ,  Tu = [], []
 
     tmin = np.min(dst.time)
@@ -131,11 +132,15 @@ def lifetime_vs_t(dst, nslices=10, nbins=10, seed=(3e4, -5e2), timestamps=None, 
 
         LT .append(-f.values[1] )
         LTu.append( f.errors[1] )
+        E0 .append(f.values[0] )
+        E0u.append( f.errors[0] )
         T  .append(0.5*(t1 + t0))
         Tu .append(0.5*(t1 - t0))
 
-    plt.errorbar(T, LT, LTu, Tu)
-    return T, LT, Tu, LTu
+    #plt.errorbar(T, LT, LTu, Tu)
+
+    plt.errorbar(T, E0, E0u, Tu)
+    return T, LT, Tu, LTu, E0, E0u
 
 class MapXY:
     def __init__(self, x, y, E):
