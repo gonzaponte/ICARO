@@ -23,21 +23,25 @@ def delete_lifetime_entry(filename, run_number, delimiter=" ", overwrite=False):
     return False
 
 
-def save_lifetime(  filename,
-                  run_number,       lt,  u_lt,
-                     t_start,    t_end,    dt,
-                  date_start, date_end, ddate,
-                  v_drift   , ev_drift,
-                  comment   = "" ,
-                  delimiter = " ",
-                  overwrite = False):
+def save_lifetime(    filename, run_number, run_tag,
+                            lt,       u_lt,
+                           E_0,       u_E0,
+                       v_drift,  u_v_drift,
+                       t_start,      t_end,            dt,
+                    date_start,   date_end,         ddate,
+                    comment   = "" ,
+                    delimiter = " ",
+                    overwrite = False):
     if not delete_lifetime_entry(filename, run_number, overwrite=overwrite):
         return
-    line = delimiter.join(map(str, [run_number,       lt,  u_lt,
-                                       t_start,    t_end,    dt,
-                                    date_start, date_end, ddate,
-                                    v_drift   , ev_drift,
-                                    comment]))
+    line = delimiter.join(map(str, [run_number,    run_tag,        
+                                            lt,       u_lt,  
+                                           E_0,       u_E0,
+                                       v_drift,  u_v_drift,
+                                      t_start ,      t_end,    dt, 
+                                    date_start,   date_end, ddate,
+                                       comment]))
+
     in_data          = open(filename, "r").readlines()
     in_data.append(line + "\n")
 
@@ -172,19 +176,19 @@ def event_rate(kdst):
 def profile_and_fit(X, Y, xrange, yrange, nbins, fitpar, label, fitOpt  = "r"):
     n_it = 0
     chi2 = 0
-    while not 0.8 < chi2 < 1.4:
-        xe       = 0.5*(xrange[1] - xrange[0])/nbins
-        x, y, sy = fitf.profileX(X, Y, nbins=nbins, xrange=xrange, yrange=yrange)
-        sel      = fitf.in_range(x, *xrange)
-        x, y, sy = x[sel], y[sel], sy[sel]
-        f        = fitf.fit(fitf.expo, x, y, fitpar, sigma=sy)
-        chi2     = f.chi2
-        nbins   -= n_it
+    #while not 0.8 < chi2 < 1.4:
+    xe       = 0.5*(xrange[1] - xrange[0])/nbins
+    x, y, sy = fitf.profileX(X, Y, nbins=nbins, xrange=xrange, yrange=yrange)
+    sel      = fitf.in_range(x, *xrange)
+    x, y, sy = x[sel], y[sel], sy[sel]
+    f        = fitf.fit(fitf.expo, x, y, fitpar, sigma=sy)
+    chi2     = f.chi2
+    nbins   -= n_it
 
-        n_it += 1
-        if nbins < 5:
-            print("Chi2 does not get close to 1")
-            break
+     #   n_it += 1
+      #  if nbins < 5:
+       #     print("Chi2 does not get close to 1")
+        #    break
 
     plt.errorbar(x=x, xerr=xe, y=y, yerr=sy,
                  linestyle='none', marker='.')

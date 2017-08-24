@@ -31,6 +31,7 @@ print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), end=space)
 program, *args = sys.argv
 parser = argparse.ArgumentParser(program)
 parser.add_argument("-r", metavar="run_numbers", type=int, help="run numbers"  , nargs='+')
+parser.add_argument("-t", metavar="run_tags"   , type=str, help="run tags"     , nargs='+', default=['notag'])
 parser.add_argument("-i", metavar="input path" , type=str, help="input path"   )
 parser.add_argument("-o", metavar="database"   , type=str, help="database file", default="$ICARODIR/Alphas/Litetimes.txt")
 parser.add_argument("-c", metavar="comment"    , type=str, help="comments"     , default="")
@@ -39,17 +40,22 @@ parser.add_argument("--save-plots", action="store_true"  , help="store control p
 parser.add_argument("--overwrite" , action="store_true"  , help="overwrite datebase values" )
 
 flags, extras = parser.parse_known_args(args)
-flags.i = os.path.expandvars(flags.i if flags.i else "$ALPHASDIR")
+
+flags.i = os.path.expandvars(flags.i if flags.i else "$ALPHASDIR/")
 flags.o = os.path.expandvars(flags.o if flags.o else "$ICARODIR/icaro/Alphas/Lifetimes.txt")
 flags.p = os.path.expandvars(flags.p if flags.p else "./")
 
 run_numbers   = flags.r
+run_tags      = flags.t
 data_filename = flags.i + "{0}/dst_{0}.root.h5"
 text_filename = flags.o
 run_comment   = flags.c
 plots_folder  = flags.p
 save_plots    = flags.save_plots
 overwrite     = flags.overwrite
+
+if len(run_tags)==1:
+    run_tags *= len (run_numbers)
 
 def savefig(name, run_number):
     folder = os.path.join(plots_folder, str(run_number))
@@ -59,7 +65,7 @@ def savefig(name, run_number):
     plt.savefig(os.path.join(folder, name + ".png"))
 
 
-for run_number in run_numbers:
+for run_number, run_tag in zip(run_numbers, run_tags):
     full       = dstf.load_dst(data_filename.format(run_number), "DST", "Events")
     t_begin    = np.min(full.time)
     t_end      = np.max(full.time)
@@ -240,6 +246,7 @@ for run_number in run_numbers:
     print("Lifetime     : {:.1f} +- {:.1f} µs ".format(-F.values[1], F.errors[1]))
     print("Chi2 fit     : {:.2f}              ".format( F.chi2))
     LT, LTu = -F.values[1], F.errors[1]
+    E0, E0u =  F.values[0], F.errors[0]
 
     
     #--------------------------------------------------------
@@ -292,11 +299,12 @@ for run_number in run_numbers:
     date_end   = time_from_timestamp(t_end  )
     date_lapse = to_deltatime       (t_begin, t_end, unit="s", to_str=True)
 
-    save_lifetime(text_filename,
-                     run_number,       LT,        LTu,
-                        t_begin,    t_end,     run_dt,
-                     date_begin, date_end, date_lapse,
-                        v_drift, ev_drift,
+    save_lifetime(text_filename, run_number,    run_tag,         
+                             LT,        LTu,
+                             E0,        E0u,
+                        v_drift,   ev_drift,
+                        t_begin,      t_end,     run_dt,
+                     date_begin,   date_end, date_lapse,
                      comment   = run_comment.replace(" ", "_"),
                      delimiter = " ",
                      overwrite = overwrite)
