@@ -122,15 +122,15 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     #--------------------------------------------------------
     plt.figure ()
     plt.subplot(2, 3, 1)
-    plt.hist   (full.S1e, S1nbins, (0, np.max(full.S1e)))
+    plt.hist   (full.S1e, S1nbins, S1range)
     labels     ("S1 energy (pes)", "Entries", "S1 energy")
 
     plt.subplot(2, 3, 2)
-    plt.hist   (full.S2e, S2nbins, (0, np.max(full.S2e) * 1.2))
+    plt.hist   (full.S2e, S2nbins, S2range)
     labels     ("S2 energy (pes)", "Entries", "S2 energy")
 
     plt.subplot(2, 3, 3)
-    plt.hist   (fid .S2e, S2nbins, (0, np.max(full.S2e) * 1.2))
+    plt.hist   (fid .S2e, S2nbins, S2range)
     labels     ("S2 energy (pes)", "Entries", "S2 energy (R < 100 mm)")
 
     plt.subplot(2, 3, 4)
@@ -150,7 +150,7 @@ for run_number, run_tag in zip(run_numbers, run_tags):
 
 
     #--------------------------------------------------------
-    hist2d (full.time, full.S2e, (Tnbins, S2nbins))
+    hist2d (full.time, full.S2e, (Tnbins, S2nbins), ((0, full.time.max()), S2range))
     labels ("Time (s)", "Energy (pes)", "Energy vs time")
     savefig("EvsT")
 
@@ -215,8 +215,15 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     #--------------------------------------------------------
     seed   = S2range[1], -1e3
 
+    E_sel = np.ones_like(fid.Z.values, dtype=bool)
+    if run_tag == "kr":
+        x, y, y_std = fitf.profileX(fid.Z, fid.S2e, Znbins, Zrange_LT, S2range, std=True)
+        f_low       = fitf.fit(fitf.expo, x, y - y_std, (np.max(y), -1e3)).fn
+        f_upp       = fitf.fit(fitf.expo, x, y + y_std, (np.max(y), -1e3)).fn
+        E_sel       = coref.in_range(fid.S2e, f_low(fid.Z), f_upp(fid.Z))
+
     plt.figure()
-    F, *_ = profile_and_fit(fid.Z, fid.S2e,
+    F, *_ = profile_and_fit(fid.Z[E_sel], fid.S2e[E_sel],
                             xrange =  Zrange_LT,
                             yrange = S2range,
                             nbins  =  Znbins,
@@ -233,7 +240,7 @@ for run_number, run_tag in zip(run_numbers, run_tags):
 
     #--------------------------------------------------------
     plt.figure()
-    dst        = fid[coref.in_range(fid.Z, *Zrange_LT)]
+    dst        = fid[E_sel & coref.in_range(fid.Z, *Zrange_LT)]
     timestamps = list(map(time_from_timestamp, dst.time))
 
     Ts, u_Ts, LTs, u_LTs, E0s, u_E0s = lifetime_vs_t(dst, nslices=8, timestamps=timestamps)
