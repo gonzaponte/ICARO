@@ -1,3 +1,4 @@
+import os
 import datetime
 
 import numpy  as np
@@ -12,8 +13,16 @@ from invisible_cities.icaro.hst_functions import errorbar
 from invisible_cities.icaro.hst_functions import labels
 
 
+def create_file_if_neccessary(filename):
+    if not os.path.exists(filename):
+        open(filename, "w").close()
+
+
 def delete_lifetime_entry(filename, run_number, delimiter=" ", overwrite=False):
     in_data          = open(filename, "r").readlines()
+    if not in_data:
+        return True
+
     header, *in_data = in_data
     out_data         = list(filter(lambda line: int(line.split(delimiter)[0]) != run_number, in_data))
 
@@ -34,8 +43,10 @@ def save_lifetime(    filename,
                     comment   = "" ,
                     delimiter = " ",
                     overwrite = False):
+    create_file_if_neccessary(filename)
     if not delete_lifetime_entry(filename, run_number, overwrite=overwrite):
         return
+
     line = delimiter.join(map(str, [run_number,    run_tag,        
                                             lt,       u_lt,  
                                            E_0,       u_E0,
@@ -149,9 +160,7 @@ def lifetime_vs_t(dst, nslices=10, nbins=10, seed=(3e4, -5e2), timestamps=None, 
         T  .append(0.5*(t1 + t0))
         Tu .append(0.5*(t1 - t0))
 
-    errorbar(T, LT, LTu, Tu)
-    errorbar(T, E0, E0u, Tu)
-    return T, LT, Tu, LTu, E0, E0u
+    return T, Tu, LT, LTu, E0, E0u
 
 
 def event_rate(kdst):
