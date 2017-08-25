@@ -13,6 +13,7 @@ import invisible_cities.core. fit_functions as fitf
 import invisible_cities.database.load_db    as db
 
 from invisible_cities.icaro.hst_functions import plot
+from invisible_cities.icaro.hst_functions import errorbar
 from invisible_cities.icaro.hst_functions import hist
 from invisible_cities.icaro.hst_functions import hist2d
 from invisible_cities.icaro.hst_functions import labels
@@ -69,6 +70,7 @@ overwrite     = flags.overwrite
 Xrange        = -200, 200
 Yrange        = -200, 200
 Zrange        =    0, 600
+Zrange_LT     =   50, 500
 Xnbins        =   50
 Ynbins        =   50
 Znbins        =   50
@@ -118,7 +120,7 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     print("Average trigger rate: {:.2f} Hz".format(rate))
 
     #--------------------------------------------------------
-    plt.figure (figsize=(12, 8))
+    plt.figure ()
     plt.subplot(2, 3, 1)
     plt.hist   (full.S1e, S1nbins, (0, np.max(full.S1e)))
     labels     ("S1 energy (pes)", "Entries", "S1 energy")
@@ -154,7 +156,7 @@ for run_number, run_tag in zip(run_numbers, run_tags):
 
 
     #--------------------------------------------------------
-    plt.figure(figsize=(12, 8))
+    plt.figure()
 
     plt.subplot(2, 3, 1)
     plt.hist2d (full.Z  , full.S2e, ( Znbins, S2nbins), range=( Zrange, S2range))
@@ -185,21 +187,25 @@ for run_number, run_tag in zip(run_numbers, run_tags):
 
 
     #--------------------------------------------------------
-    plt.figure (figsize=(12,10))
+    plt.figure ()
     plt.subplot(2, 2, 1)
     plt.hist2d (full.X, full.Y, XYnbins, XYrange)
+    plt.colorbar().set_label("# events")
     labels     ("X (mm)", "Y (mm)", "XY distribution")
 
     plt.subplot(2, 2, 2)
     plt.hist2d (fid .X, fid .Y, XYnbins, XYrange)
+    plt.colorbar().set_label("# events")
     labels     ("X (mm)", "Y (mm)", "XY distribution (R < 100 mm)")
 
     plt.subplot(2, 2, 3)
     plt.hist2d (bulk.X, bulk.Y, XYnbins, XYrange)
+    plt.colorbar().set_label("# events")
     labels     ("X (mm)", "Y (mm)", "XY distribution (bulk)")
 
     plt.subplot(2, 2, 4)
     plt.hist2d (cath.X, cath.Y, XYnbins, XYrange)
+    plt.colorbar().set_label("# events")
     labels     ("X (mm)", "Y (mm)", "XY distribution (cathode)")
 
     plt.tight_layout()
@@ -210,11 +216,11 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     seed   = S2range[1], -1e3
 
     plt.figure()
-    F, x, y, sy = profile_and_fit(fid.Z, fid.S2e, 
-                                  xrange =  Zrange,
-                                  yrange = S2range,
-                                  nbins  =  Znbins,
-                                  fitpar =  seed)
+    F, *_ = profile_and_fit(fid.Z, fid.S2e,
+                            xrange =  Zrange_LT,
+                            yrange = S2range,
+                            nbins  =  Znbins,
+                            fitpar =  seed)
     labels ("Drift time (µs)", "S2 energy (pes)")
     savefig("LifetimeFit")
 
@@ -227,12 +233,18 @@ for run_number, run_tag in zip(run_numbers, run_tags):
 
     #--------------------------------------------------------
     plt.figure()
-    dst        = fid[coref.in_range(fid.Z, *Zrange)]
+    dst        = fid[coref.in_range(fid.Z, *Zrange_LT)]
     timestamps = list(map(time_from_timestamp, dst.time))
 
-    lifetime_vs_t(dst, nslices=8, timestamps=timestamrps)
-    labels       ("Time (s)", "Lifetime (µs)", "Lifetime evolution within run")
-    savefig      ("LifetimeT")
+    Ts, u_Ts, LTs, u_LTs, E0s, u_E0s = lifetime_vs_t(dst, nslices=8, timestamps=timestamps)
+
+    errorbar(Ts, LTs, u_LTs, u_Ts)
+    labels  ("Time (s)", "Lifetime (µs)", "Lifetime evolution within run")
+
+    errorbar(Ts, E0s, u_E0s, u_Ts)
+    labels  ("Time (s)", "Energy at Z=0 (pes)", "Energy scale evolution within run")
+
+    savefig ("EnergyScaleT")
 
 
     #--------------------------------------------------------    
@@ -253,8 +265,8 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     v_drift     = db.DetectorGeo().ZMAX[0]/max_drift
     u_v_drift   = v_drift*u_max_drift/max_drift
 
-    print("Drift time     : {} µs   ".format(measurement_string(max_drift, u_max_drift)))
-    print("Drift velocity : {} mm/µs".format(measurement_string(  v_drift,   u_v_drift)))
+    print("Drift time     : ({}) µs   ".format(measurement_string(max_drift, u_max_drift)))
+    print("Drift velocity : ({}) mm/µs".format(measurement_string(  v_drift,   u_v_drift)))
 
 
     #--------------------------------------------------------
