@@ -16,6 +16,7 @@ from invisible_cities.icaro.hst_functions import plot
 from invisible_cities.icaro.hst_functions import errorbar
 from invisible_cities.icaro.hst_functions import hist
 from invisible_cities.icaro.hst_functions import hist2d
+from invisible_cities.icaro.hst_functions import display_matrix
 from invisible_cities.icaro.hst_functions import labels
 from invisible_cities.icaro.hst_functions import plot_writer
 from invisible_cities.icaro.hst_functions import measurement_string
@@ -67,8 +68,8 @@ save_plots    = flags.save_plots
 overwrite     = flags.overwrite
 
 
-Xrange        = -200, 200
-Yrange        = -200, 200
+Xrange        = -198, 198
+Yrange        = -198, 198
 Zrange        =    0, 600
 Zrange_LT     =   50, 500
 Xnbins        =   50
@@ -238,6 +239,8 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     print("Lifetime     : ({}) µs ".format(measurement_string(LT, u_LT)))
     print("Chi2 fit     : {:.2f}  ".format(F.chi2))
 
+    Zcorr = corrf.LifetimeCorrection(LT, u_LT)
+
     #--------------------------------------------------------
     plt.figure()
     dst        = fid[E_sel & coref.in_range(fid.Z, *Zrange_LT)]
@@ -252,6 +255,31 @@ for run_number, run_tag in zip(run_numbers, run_tags):
     labels  ("Time (s)", "Energy at Z=0 (pes)", "Energy scale evolution within run")
 
     savefig ("EnergyScaleT")
+
+
+    #--------------------------------------------------------
+    x, y, E, u_E = fitf.profileXY(full.X.values, full.Y.values,
+                                  full.S2e.values * Zcorr(full.Z.values).value,
+                                  nX, nY, Xrange, Yrange)
+
+    _, cb = display_matrix(x, y, E)
+    cb.set_label("E (pes)")
+    labels("x (mm)", "y (mm)", "Energy vs XY")
+    save("EvsXY")
+    
+    corrections = corrf.Correction((x, y), E, u_E, "index", index=(nX//2, nY//2))
+    print("Reference energy = {} pes".format(E[tuple(np.argwhere(corrections._fs==1)[0])]))    
+
+
+    #--------------------------------------------------------
+    x, y, Q, u_Q = fitf.profileXY(full.X.values, full.Y.values,
+                                  full.S2q.values,
+                                  nX, nY, Xrange, Yrange)
+
+    _, cb = display_matrix(x, y, Q)
+    cb.set_label("Q (pes)")
+    labels("x (mm)", "y (mm)", "Charge vs XY")
+    save("QvsXY")
 
 
     #--------------------------------------------------------    
